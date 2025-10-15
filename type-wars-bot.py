@@ -68,10 +68,14 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     print(f"Logged on as {bot.user.name}!")
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
 
-
+@bot.tree.command(name="ping", description="Check the bot's latency.")
+async def ping(interaction: discord.Interaction):
+	latency = round(bot.latency *1000)
+	await interaction.response.send_message("Pong!")
 
 
