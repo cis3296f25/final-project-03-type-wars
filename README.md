@@ -1,6 +1,6 @@
 # "Type Wars"
 
-‘Type Wars’ would be a Discord bot designed to implement multiple typing-based games. There would be three modes, both can be played as a single player, or multiplayer. Game #1, the player/s is/are given a word and must spell it letter by letter between messages. Game #2, player/s is/are given a definition, length of said word, and must spell out what the word is. Game #3, player/s is/are given a word and must type it the fastest (this game mode would include longer words that are harder to spell off a whim).  
+‘Type Wars’ would be a Discord bot designed to implement multiple typing-based games. There would be three modes, both can be played as a single player, or multiplayer. Game #1, the player/s is/are given a word and must spell it letter by letter between messages. Game #2, player/s is/are given a definition, length of said word, and must spell out what the word is. Game #3, player/s is/are given a word and must type it the fastest (this game mode would include longer words that are harder to spell off a whim).
 
 <img width="1558" height="373" alt="image" src="https://github.com/user-attachments/assets/785e72d6-37e5-4a0a-9e2e-a77bab330089" />
 
@@ -18,3 +18,20 @@ Language: Python
 API: discord.py
 Creating a Bot account: https://discordpy.readthedocs.io/en/stable/discord.html
 Discord Developer Portal: https://discord.com/developers/docs/intro
+
+Testing
+
+To run and test the TypeWars bot, make sure a few items are properly set up first:
+
+- The python modules dotenv and discord are installed using:
+  pip install dotenv
+  pip install discord
+- The .env file is correctly named, contains the correct token, contains no brackets/braces, and exists in the TYPE-WARS root directory alongside type-wars-bot.py and the rest of the code
+- Your settings.json [Ctrl+Shift+P -> Open User Settings] contains the following lines right before the last brace:
+  "python.terminal.activateEnvironment" : true,
+  "python.terminal.useEnvFile" : true
+
+Then, run the following command in the TYPE-WARS root directory:
+py type-wars-bot.py
+
+The bot should come online on Discord and respond to queries in the #testing channel!
