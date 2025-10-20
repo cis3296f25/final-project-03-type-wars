@@ -72,7 +72,21 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-         print(f'Message from {message.author}: {message.content}')
+    print(f'Message from {message.author}: {message.content}')
+    
+    if message.author == bot.user:
+        return
+    
+    if "poo" in message.content.lower():
+        await message.delete()
+        await message.channel.send(f"{message.author.mention} -- don't say that!!")
+
+    await bot.process_commands(message)
+       
+@bot.command()
+async def hello(ctx):
+    await ctx.send(f"Hello {ctx.author.mention}!!")
+
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
 
