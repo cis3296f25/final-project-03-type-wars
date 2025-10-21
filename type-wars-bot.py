@@ -1,53 +1,3 @@
-# import os
-
-# import discord
-# from discord.ext import commands
-
-# import logging
-# from dotenv import load_dotenv
-
-# load_dotenv()
-# TOKEN = os.getenv('DISCORD_TOKEN')
-
-
-# bot = commands.Bot(command_prefix = '/', intents = intents)
-
-# @bot.event
-# async def on_ready():
-#     print("Ready, {bot.user.name}!")
-
-# bot.run(TOKEN, log_handler = handler, log_level = logging.debug )
-
-# client = discord.Client()
-
-# @client.event
-# async def on_ready():
-#     print(f'{client.user} has connected to Discord!')
-
-# client.run(TOKEN)
-
-# client = discord.Client(intents=discord.Intents.default())
-# client.run(os.environ.get('DISCORD_TOKEN'))
-
-# class Client(discord.Client):
-#     async def on_ready(self):
-#         print(f'Logged on as {self.user}!')
-
-#     async def on_message(self, message):
-#         print(f'Message from {message.author}: {message.content}')
-
-# intents = discord.Intents.default()
-# intents.message_content = True
-
-# client = Client(intents = intents)
-
-# client.run(DISCORD_TOKEN)
-# 
-# async def on_message(self, message):
-#          print(f'Message from {message.author}: {message.content}')
-
-
-
 from dotenv import load_dotenv
 from discord.ext import commands
 import discord
@@ -64,7 +14,11 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
+
+bot.remove_command("help")
+
+GUILD_ID = discord.Object(id=1420829218882719848)
 
 @bot.event
 async def on_ready():
@@ -83,9 +37,19 @@ async def on_message(message):
 
     await bot.process_commands(message)
        
-@bot.command()
+@bot.command(name = "hello", description= "say hello!", guild = GUILD_ID)
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.mention}!!")
+
+
+@bot.command(name = "help", description = "list out all commands", guild = GUILD_ID)
+async def help(ctx):
+    x = discord.Embed(title = "Help", description= "type-wars prefix is '/': ")
+    
+    x.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
+    x.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+
+    await ctx.send(embed = x)
 
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
