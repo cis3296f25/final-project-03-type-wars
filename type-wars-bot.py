@@ -1,12 +1,13 @@
 from dotenv import load_dotenv
 from discord.ext import commands
+from random_word import RandomWords
 import discord
 import os
 import logging
+import time
 
 load_dotenv()
-token = os.getenv('DISCORD_TOKEN')
-
+token = os.getenv("DISCORD_TOKEN")
 handler = logging.FileHandler(filename ='discord.log', encoding ='utf-8', mode ='w')
 
 # Enabling intents (must do this for every intent needed)
@@ -51,6 +52,35 @@ async def help(ctx):
 
     await ctx.send(embed = x)
 
+
+@bot.command(name="typewars", description="Test your typing speed!", guild=GUILD_ID)
+async def typewars(ctx):
+	from random_word import RandomWords
+	import time
+	
+	r = RandomWords()
+	word = r.get_random_word()
+	
+	await ctx.send(f" Type this word as fast as you can **{word}**")
+
+	start_time = time.time()
+
+	def check(m):
+		return m.author == ctx.author and m.channel == ctx.channel
+
+	try:
+		msg= await bot.wait_for("message", check=check, timeout=10.0)
+	except:
+		await ctx.seed("Times up! Didnt type in time")
+		return
+
+	end_time=time.time()
+
+	if msg.content.strip().lower() == word.lower():
+		speed = round(end_time - start_time, 2)
+		await ctx.send(f" Nice job{ctx.author.mention}! You typed it correct in **{speed} seconds**!")
+	else: 
+		await ctx.send(f"The correct word was **{word}**.")
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
 
