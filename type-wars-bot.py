@@ -4,6 +4,7 @@ from random_word import RandomWords
 import discord
 import os
 import logging
+import json
 import time
 
 load_dotenv()
@@ -16,8 +17,17 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='/', intents=intents)
-
 bot.remove_command("help")
+
+# Code for a multi-page help menu...in progress
+# help_menu = json.load(open("help.json"))
+
+# def createHelpEmbed(pageNum=0, inline=False):
+#     pageTitle = list(help_menu)[pageNum]
+#     embed=discord.embed(color=0x0080ff, title=pageTitle)
+#     for key, val in help_menu[pageTitle].items():
+#         embed.set_footer(text=f"Page {pageNum+1} of {len(list(help_menu))}")
+#     return embed
 
 GUILD_ID = discord.Object(id=1420829218882719848)
 
@@ -45,12 +55,15 @@ async def hello(ctx):
 
 @bot.command(name = "help", description = "list out all commands", guild = GUILD_ID)
 async def help(ctx):
-    x = discord.Embed(title = "Help", description= "type-wars prefix is '/': ")
+    # await ctx.send(embed=createHelpEmbed)
+    embed = discord.Embed(title = "Help", description= "Type-Wars uses the '/' prefix: ")
     
-    x.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
-    x.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+    embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
+    embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
 
-    await ctx.send(embed = x)
+
+
+    await ctx.send(embed = embed)
 
 
 @bot.command(name="typewars", description="Test your typing speed!", guild=GUILD_ID)
