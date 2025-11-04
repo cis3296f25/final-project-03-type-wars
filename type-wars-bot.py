@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from discord.ext import commands
-from random_word import RandomWords
+from random_word import RandomWords	
 import discord
 import os
 import logging
@@ -56,21 +56,22 @@ async def hello(ctx):
 @bot.command(name = "help", description = "list out all commands", guild = GUILD_ID)
 async def help(ctx):
     # await ctx.send(embed=createHelpEmbed)
-    embed = discord.Embed(title = "Help", description= "Type-Wars uses the '/' prefix: ")
+    embed = discord.Embed(title = "Help", description= "type-Wars uses the '/' prefix: ")
     
-    embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
-    embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+    embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game\n")
+    embed.add_field(name = "/tw @user", value = "Activate multi-player 'Type Wars' game\n")
+    embed.add_field(name = "/rps @user", value = "Activate rock paper scissors against another user\n")
+    embed.add_field(name = "/hello", value = "Say hello!")
+    embed.add_field(name = "/score", value = "Checks wins & losses of player\n")
 
 
 
     await ctx.send(embed = embed)
 
 
-@bot.command(name="typewars", description="Test your typing speed!", guild=GUILD_ID)
+@bot.command(name="tw", description="Test your typing speed!", guild=GUILD_ID)
 async def typewars(ctx):
-	from random_word import RandomWords
-	import time
-	
+
 	r = RandomWords()
 	word = r.get_random_word()
 	
