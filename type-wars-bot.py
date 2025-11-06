@@ -58,11 +58,20 @@ async def help(ctx):
     # await ctx.send(embed=createHelpEmbed)
     embed = discord.Embed(title = "Help", description= "type-Wars uses the '/' prefix: ")
     
+<<<<<<< Updated upstream
     embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game\n")
     embed.add_field(name = "/tw @user", value = "Activate multi-player 'Type Wars' game\n")
     embed.add_field(name = "/rps @user", value = "Activate rock paper scissors against another user\n")
     embed.add_field(name = "/hello", value = "Say hello!")
     embed.add_field(name = "/score", value = "Checks wins & losses of player\n")
+=======
+    embed.add_field(name = "/typewars", value = "Activate single-player 'Type Wars' game")
+    embed.add_field(name = "/hello", value = "Say hello to the bot!")
+    embed.add_field(name = "/play @user", value = "Activate rock-paper-scissors with another opponent")
+
+
+    # embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+>>>>>>> Stashed changes
 
 
 
