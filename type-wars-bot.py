@@ -66,7 +66,7 @@ async def help(ctx):
     await ctx.send(embed = embed)
 
 
-
+#wins = 0
 
 
 @bot.command(name="typewars", description="Challenge someone to a typing duel!")
@@ -135,6 +135,8 @@ async def typewars(ctx):
 
         end_time = time.time()
         speed = round(end_time - start_time, 2)
+
+
         await ctx.send(f"🏆 {winner_msg.author.mention} wins! They typed it in **{speed} seconds!**")
 
     else:
@@ -158,7 +160,41 @@ async def typewars(ctx):
 
         if msg.content.strip().lower() == word.lower():
             speed = round(end_time - start_time, 2)
+
+            # add_win()
             await ctx.send(f"Nice job {ctx.author.mention}! You typed it correctly in **{speed} seconds!**")
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+@bot.command(name = "wins", description = "Check how many wins you have")
+async def wins(ctx):
+
+    users = await leaderboard_data()
+    id = str(ctx.message.author.id)
+
+    if id not in await leaderboard_data():
+        await ctx.send("❓You haven't played yet! Play some games to see your score! ")
+    else:
+        await ctx.send("🎖️ You have {} wins in TypeWars!".format(users[id]))
+
+
+async def leaderboard_data():
+    with open("leaderboard.js", "r") as f:
+        users = await json.load(f)
+
+    return users
+
+async def add_win(ctx):
+
+    users = await leaderboard_data()
+    id = str(ctx.message.author.id)
+
+    if id not in users():
+        users[id] = 0
+
+    users[id] += 1
+
+    with open('leaderboard.json', 'w+') as f:
+         json.dump(users, f)
+
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
