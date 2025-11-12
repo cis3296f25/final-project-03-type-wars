@@ -161,4 +161,52 @@ async def typewars(ctx):
             await ctx.send(f"Nice job {ctx.author.mention}! You typed it correctly in **{speed} seconds!**")
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+@bot.command(name="hangman", description="Play a game of Hangman!")
+async def hangman(ctx):
+    r = RandomWords()
+    word = r.get_random_word()
+    if not word or not word.isalpha():
+        await ctx.send("Couldn't get a valid word. Try again.")
+        return
+
+    word = word.lower()
+    guessed_letters = []
+    max_attempts = 6
+    attempts_left = max_attempts
+
+    def display_word():
+        return " ".join([letter if letter in guessed_letters else "_" for letter in word])
+
+    await ctx.send(f"🎮 **Hangman Game Started!**\n\n{display_word()}\nAttempts left: {attempts_left}")
+
+    def check_guess(m):
+        return m.author == ctx.author and m.channel == ctx.channel and len(m.content) == 1 and m.content.isalpha()
+
+    while attempts_left > 0:
+        try:
+            guess_msg = await bot.wait_for("message", check=check_guess, timeout=30.0)
+        except:
+            await ctx.send("⏰ Time’s up! Game over.")
+            return
+
+        guess = guess_msg.content.lower()
+
+        if guess in guessed_letters:
+            await ctx.send(f"You already guessed **{guess}**! Try another letter.\n{display_word()}")
+            continue
+
+        guessed_letters.append(guess)
+
+        if guess in word:
+            await ctx.send(f"✅ Correct! {display_word()}")
+            if all(letter in guessed_letters for letter in word):
+                await ctx.send(f"🎉 Congrats {ctx.author.mention}! You guessed the word: **{word}**")
+                return
+        else:
+            attempts_left -= 1
+            await ctx.send(f"❌ Wrong guess! Attempts left: {attempts_left}\n{display_word()}")
+
+    await ctx.send(f"💀 Game over! The word was **{word}**.")
+
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
