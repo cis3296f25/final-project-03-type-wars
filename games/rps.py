@@ -1,6 +1,6 @@
 # games/rps.py
 
-from .base import Game
+from .game import Game
 
 class RockPaperScissors(Game):
     def __init__(self, players):

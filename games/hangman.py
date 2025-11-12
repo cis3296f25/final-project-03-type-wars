@@ -1,5 +1,5 @@
 # games/hangman.py
-from .base import Game
+from .game import Game
 import random
 
 WORDS = ["python", "discord", "hangman", "bot", "programming"]
