@@ -31,9 +31,17 @@ bot.remove_command("help")
 
 GUILD_ID = discord.Object(id=1420829218882719848)
 
+
 @bot.event
 async def on_ready():
+    global users
     print(f"Logged on as {bot.user.name}!")
+    try:
+        with open("leaderboard.json", 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
+        print("No win data file found. Starting with empty win data.")
 
 @bot.event
 async def on_message(message):
@@ -138,6 +146,8 @@ async def typewars(ctx):
 
         end_time = time.time()
         speed = round(end_time - start_time, 2)
+
+
         await ctx.send(f"🏆 {winner_msg.author.mention} wins! They typed it in **{speed} seconds!**")
 
     else:
@@ -161,9 +171,38 @@ async def typewars(ctx):
 
         if msg.content.strip().lower() == word.lower():
             speed = round(end_time - start_time, 2)
+
             await ctx.send(f"Nice job {ctx.author.mention}! You typed it correctly in **{speed} seconds!**")
+            await add_win(ctx)
+
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+@bot.command(name = "wins", description = "Check how many wins you have")
+async def wins(ctx):
+
+    id = str(ctx.author.id)
+
+    if id not in users:
+        await ctx.send("❓ You haven't played yet! Play some games to see your score! ")
+    else:
+        await ctx.send("🎖️  You have {} win(s) in TypeWars!".format(users[id]))
+
+
+async def add_win(ctx):
+
+    id = str(ctx.author.id)
+
+    if id not in users:
+        users[id] = 0
+
+    users[id] += 1
+    save_data()
+
+async def save_data():
+    global users
+    with open("leaderboard.json", 'w') as f:
+        json.dump(users, f, indent=2)
 
 @bot.command(name="hangman", description="Play a game of Hangman!")
 async def hangman(ctx):
