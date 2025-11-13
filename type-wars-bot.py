@@ -58,14 +58,17 @@ async def help(ctx):
     # await ctx.send(embed=createHelpEmbed)
     embed = discord.Embed(title = "Help", description= "Type-Wars uses the '/' prefix: ")
     
-    embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
-    embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+    embed.add_field(name = "/typewars", value = "Activate single-player 'Type Wars' game")
+    # embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
+    
+    embed.add_field(name = "/hangman", value = "Play a singleplayer game of hangman!")
+    embed.add_field(name = "/typewars", value = "Activate single-player 'Type Wars' game")
+
+
 
 
 
     await ctx.send(embed = embed)
-
-
 
 
 
