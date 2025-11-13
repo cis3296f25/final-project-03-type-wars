@@ -1,0 +1,19 @@
+{
+    "Game Commands" : {
+
+    "/tw" : "Activate single-player 'Type Wars' game",
+    "/tw @user" : "Activate multiplayer 'Typer Wars game"
+    },
+
+    "Stats Commands" : {
+    "/test1" : "testing",
+    "/test2" : "testing"   
+    },
+
+    "Misc Commands" : {
+    "/test3" : "testing",
+    "/test4" : "testing"  
+    }
+
+
+}
