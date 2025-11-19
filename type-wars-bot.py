@@ -204,12 +204,12 @@ async def save_data():
     with open("leaderboard.json", 'w') as f:
         json.dump(users, f, indent=2)
 
-@bot.command(name="hangman", description="Play a game of Hangman!")
-async def hangman(ctx):
+@bot.tree.command(name="hangman", description="Play a game of Hangman!")
+async def hangman(interaction: discord.Interaction):
     r = RandomWords()
     word = r.get_random_word()
     if not word or not word.isalpha():
-        await ctx.send("Couldn't get a valid word. Try again.")
+        await interaction.response.send_message("Couldn't get a valid word. Try again.")
         return
 
     word = word.lower()
@@ -220,35 +220,51 @@ async def hangman(ctx):
     def display_word():
         return " ".join([letter if letter in guessed_letters else "_" for letter in word])
 
-    await ctx.send(f"🎮 **Hangman Game Started!**\n\n{display_word()}\nAttempts left: {attempts_left}")
+    await interaction.response.send_message(
+        f"**Hangman Game Started!**\n\n{display_word()}\nAttempts left: {attempts_left}"
+    )
 
     def check_guess(m):
-        return m.author == ctx.author and m.channel == ctx.channel and len(m.content) == 1 and m.content.isalpha()
+        return (
+            m.author == interaction.user
+            and m.channel == interaction.channel
+            and len(m.content) == 1
+            and m.content.isalpha()
+        )
 
     while attempts_left > 0:
         try:
             guess_msg = await bot.wait_for("message", check=check_guess, timeout=30.0)
         except:
-            await ctx.send("⏰ Time’s up! Game over.")
+            await interaction.followup.send("⏰ Time’s up! Game over.")
             return
 
         guess = guess_msg.content.lower()
 
         if guess in guessed_letters:
-            await ctx.send(f"You already guessed **{guess}**! Try another letter.\n{display_word()}")
+            await interaction.followup.send(
+                f"You already guessed **{guess}**!\n{display_word()}"
+            )
             continue
 
         guessed_letters.append(guess)
 
         if guess in word:
-            await ctx.send(f"✅ Correct! {display_word()}")
+            await interaction.followup.send(f"✅ Correct! {display_word()}")
+
             if all(letter in guessed_letters for letter in word):
-                await ctx.send(f"🎉 Congrats {ctx.author.mention}! You guessed the word: **{word}**")
+                await interaction.followup.send(
+                    f"🎉 Congrats {interaction.user.mention}! You guessed the word: **{word}**"
+                )
                 return
+
         else:
             attempts_left -= 1
-            await ctx.send(f"❌ Wrong guess! Attempts left: {attempts_left}\n{display_word()}")
+            await interaction.followup.send(
+                f"❌ Wrong guess! Attempts left: {attempts_left}\n{display_word()}"
+            )
 
-    await ctx.send(f"💀 Game over! The word was **{word}**.")
+    await interaction.followup.send(f"💀 Game over! The word was **{word}**.")
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+
