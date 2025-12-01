@@ -43,9 +43,17 @@ bot.remove_command("help")
 
 GUILD_ID = discord.Object(id=1420829218882719848)
 
+
 @bot.event
 async def on_ready():
+    global users
     print(f"Logged on as {bot.user.name}!")
+    try:
+        with open("leaderboard.json", 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
+        print("No win data file found. Starting with empty win data.")
 
 @bot.event
 async def on_message(message):
@@ -76,10 +84,6 @@ async def help(ctx):
 
 
     await ctx.send(embed = embed)
-
-
-
-
 
 @bot.command(name="typewars", description="Challenge someone to a typing duel!")
 async def typewars(ctx):
@@ -147,6 +151,8 @@ async def typewars(ctx):
 
         end_time = time.time()
         speed = round(end_time - start_time, 2)
+
+
         await ctx.send(f"🏆 {winner_msg.author.mention} wins! They typed it in **{speed} seconds!**")
 
     else:
@@ -170,16 +176,105 @@ async def typewars(ctx):
 
         if msg.content.strip().lower() == word.lower():
             speed = round(end_time - start_time, 2)
+
             await ctx.send(f"Nice job {ctx.author.mention}! You typed it correctly in **{speed} seconds!**")
+            await add_win(ctx)
+
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+@bot.command(name = "wins", description = "Check how many wins you have")
+async def wins(ctx):
+
+    id = str(ctx.author.id)
+
+    if id not in users:
+        await ctx.send("❓ You haven't played yet! Play some games to see your score! ")
+    else:
+        await ctx.send("🎖️  You have {} win(s) in TypeWars!".format(users[id]))
+
+
+async def add_win(ctx):
+
+    id = str(ctx.author.id)
+
+    if id not in users:
+        users[id] = 0
+
+    users[id] += 1
+    save_data()
+
+async def save_data():
+    global users
+    with open("leaderboard.json", 'w') as f:
+        json.dump(users, f, indent=2)
+
+@bot.tree.command(name="hangman", description="Play a game of Hangman!")
+async def hangman(interaction: discord.Interaction):
+    r = RandomWords()
+    word = r.get_random_word()
+    if not word or not word.isalpha():
+        await interaction.response.send_message("Couldn't get a valid word. Try again.")
+        return
+
+    word = word.lower()
+    guessed_letters = []
+    max_attempts = 6
+    attempts_left = max_attempts
+
+    def display_word():
+        return " ".join([letter if letter in guessed_letters else "_" for letter in word])
+
+    await interaction.response.send_message(
+        f"**Hangman Game Started!**\n\n{display_word()}\nAttempts left: {attempts_left}"
+    )
+
+    def check_guess(m):
+        return (
+            m.author == interaction.user
+            and m.channel == interaction.channel
+            and len(m.content) == 1
+            and m.content.isalpha()
+        )
+
+    while attempts_left > 0:
+        try:
+            guess_msg = await bot.wait_for("message", check=check_guess, timeout=30.0)
+        except:
+            await interaction.followup.send("⏰ Time’s up! Game over.")
+            return
+
+        guess = guess_msg.content.lower()
+
+        if guess in guessed_letters:
+            await interaction.followup.send(
+                f"You already guessed **{guess}**!\n{display_word()}"
+            )
+            continue
+
+        guessed_letters.append(guess)
+
+        if guess in word:
+            await interaction.followup.send(f"✅ Correct! {display_word()}")
+
+            if all(letter in guessed_letters for letter in word):
+                await interaction.followup.send(
+                    f"🎉 Congrats {interaction.user.mention}! You guessed the word: **{word}**"
+                )
+                return
+
+        else:
+            attempts_left -= 1
+            await interaction.followup.send(
+                f"❌ Wrong guess! Attempts left: {attempts_left}\n{display_word()}"
+            )
+
+    await interaction.followup.send(f"💀 Game over! The word was **{word}**.")
 
 #save function for profiles to json file
 def saveProfiles():
     with open("profiles.json", "w") as f:
         json.dump(profiles, f, indent=4)
-
-
 
 
 #Profile Feature
@@ -304,11 +399,6 @@ async def view(ctx):
         #await ctx.send("That is an invalid username")
     #call the funcs, use right arguements/parameters
 
-
-
-
-
-
 async def ViewProfile(ctx, userID):
     print("in profile")
     if userID not in profiles:
@@ -359,6 +449,5 @@ async def profile(ctx):
    
     await ctx.send(embed=embed)
 
-
-
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+
