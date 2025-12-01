@@ -204,6 +204,11 @@ async def add_win(ctx):
     users[id] += 1
     save_data()
 
+    # adding to total wins on user profile
+    if id in profiles:
+        profiles[id]["wins"] += 1
+        saveProfiles()
+
 async def save_data():
     global users
     with open("leaderboard.json", 'w') as f:
@@ -303,7 +308,7 @@ async def create(ctx):
         favgame = response.content
         await ctx.send(f"Your Favorite Game {favgame} is Saved")
        
-        profiles[userID] = {"username": username, "bio": bio, "favgame": favgame}
+        profiles[userID] = {"username": username, "bio": bio, "favgame": favgame, "wins": 0}
         saveProfiles()
         await ctx.send("Profile Saved")
 
@@ -410,6 +415,7 @@ async def ViewProfile(ctx, userID):
     embed = discord.Embed(title=f"{profile['username']}’s Profile")
     embed.add_field(name="Bio: ", value=profile["bio"], inline=False)
     embed.add_field(name="Favorite Game: ", value=profile["favgame"], inline=False)
+    embed.add_field(name="Total Wins: ", value=profile["wins"], inline=False)
     #embed.add_field(name = "Stats: ", value = profile["stats"])
 
 
