@@ -366,8 +366,6 @@ async def EditFavGame(ctx, userID):
 @bot.command(name="delete", description="Delete your entire profile", guild=GUILD_ID)
 async def delete(ctx):
     userID = str(ctx.author.id)
-    #check if user profile exists, try and use if/else from profile func
-
 
     if userID not in profiles:
             await ctx.send("User does not have a profile to delete")
@@ -412,7 +410,7 @@ async def ViewProfile(ctx, userID):
     profile = profiles[userID]
 
 
-    embed = discord.Embed(title=f"{profile['username']}’s Profile")
+    embed = discord.Embed(title=f"{profile['username']}’s Profile\n\n______________________\n", color=0x3498DB)
     embed.add_field(name="Bio: ", value=profile["bio"], inline=False)
     embed.add_field(name="Favorite Game: ", value=profile["favgame"], inline=False)
     embed.add_field(name="Total Wins: ", value=profile["wins"], inline=False)
