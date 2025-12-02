@@ -410,7 +410,7 @@ async def ViewProfile(ctx, userID):
     profile = profiles[userID]
 
 
-    embed = discord.Embed(title=f"{profile['username']}’s Profile\n\n______________________\n", color=0x3498DB)
+    embed = discord.Embed(title=f"{profile['username']}’s Profile\n______________________\n", color=0x3498DB)
     embed.add_field(name="Bio: ", value=profile["bio"], inline=False)
     embed.add_field(name="Favorite Game: ", value=profile["favgame"], inline=False)
     embed.add_field(name="Total Wins: ", value=profile["wins"], inline=False)
