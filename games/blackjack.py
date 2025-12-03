@@ -1,5 +1,5 @@
 import random
-from .base import Game
+from .game import Game
 
 RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
 SUITS = ["♠","♥","♦","♣"]
@@ -58,14 +58,47 @@ class Blackjack(Game):
             self.dealer.append(self.deck.pop())
         # if any player has blackjack immediately we'll resolve on demand
 
+# ===== BLACKJACK TESTING ===== #
+
+    # def start(self):
+    #     lines = []
+    #     lines.append("Blackjack started! Players vs Dealer.")
+    #     for p in self.players:
+    #         lines.append(f"**{p.display_name}**: {', '.join(self.hands[p])}  ({hand_value(self.hands[p])})")
+    #     lines.append(f"Dealer: {self.dealer[0]}, [hidden]")
+    #     lines.append(self._turn_prompt())
+    #     return "\n".join(lines)
+
     def start(self):
         lines = []
         lines.append("Blackjack started! Players vs Dealer.")
         for p in self.players:
             lines.append(f"**{p.display_name}**: {', '.join(self.hands[p])}  ({hand_value(self.hands[p])})")
         lines.append(f"Dealer: {self.dealer[0]}, [hidden]")
+
+        # Ensure stage is set to player_turns so get_valid_actions works
+        if self.stage == "dealing":
+            self.stage = "player_turns"
+
+        # If current_turn is beyond players (shouldn't happen), clamp it
+        if self.current_turn >= len(self.players):
+            self.current_turn = max(0, len(self.players) - 1)
+
         lines.append(self._turn_prompt())
         return "\n".join(lines)
+
+    def _turn_prompt(self):
+        if self.stage == "finished":
+            return "Game finished."
+        if not self.players:
+            return "No players."
+        # If current player busted or otherwise invalid, show next valid player
+        idx = self.current_turn
+        if idx < 0 or idx >= len(self.players):
+            idx = 0
+        return f"Turn: {self.players[idx].display_name}"
+    
+# ===== END BLACKJACK TESTING ===== #
 
     def get_valid_actions(self, player):
         # valid during their turn only
