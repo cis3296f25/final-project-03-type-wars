@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from discord.ext import commands
 from random_word import RandomWords
+from tournament import setup as setup_tournament
 import discord
 import os
 import logging
@@ -18,7 +19,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix='/', intents=intents)
 bot.remove_command("help")
-
+setup_tournament(bot)
 # Code for a multi-page help menu...in progress
 # help_menu = json.load(open("help.json"))
 
@@ -31,7 +32,6 @@ bot.remove_command("help")
 
 GUILD_ID = discord.Object(id=1420829218882719848)
 
-
 @bot.event
 async def on_ready():
     global users
@@ -42,6 +42,9 @@ async def on_ready():
     except FileNotFoundError:
         users = {}
         print("No win data file found. Starting with empty win data.")
+
+    
+
 
 @bot.event
 async def on_message(message):
@@ -170,6 +173,30 @@ async def typewars(ctx):
 
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+
+
+
+
+@bot.command(name="win", description="Report that you won your match")
+async def win(ctx):
+    ok, result = tournaments.report(ctx.guild.id, ctx.author.name)
+    if not ok:
+        await ctx.send(result)
+        return
+    if isinstance(result, str):
+        await ctx.send(result)
+        return
+    matches = result
+    text = "**Next Round Matches:**\n"
+    for m in matches:
+        if m.player2:
+            text += f"🔹 {m.player1} vs {m.player2}\n"
+        else:
+            text += f"🔸 {m.player1} gets a bye\n"
+    await ctx.send(text)
+
+
 
 @bot.command(name = "wins", description = "Check how many wins you have")
 async def wins(ctx):
