@@ -1,11 +1,14 @@
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord.utils import get
 from random_word import RandomWords
 import discord
 import os
 import logging
 import json
 import time
+
+global users
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -16,7 +19,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix='/', intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 bot.remove_command("help")
 
 # Code for a multi-page help menu...in progress
@@ -35,17 +38,22 @@ GUILD_ID = discord.Object(id=1420829218882719848)
 @bot.event
 async def on_ready():
     global users
+
     print(f"Logged on as {bot.user.name}!")
     try:
-        with open("leaderboard.json", 'r') as f:
+        with open("track_wins.json", "r") as f:
             users = json.load(f)
+
     except FileNotFoundError:
         users = {}
+        # fastest = {}
         print("No win data file found. Starting with empty win data.")
+        
+    
 
 @bot.event
 async def on_message(message):
-    print(f'Message from {message.author}: {message.content}')
+    print(f"Message from {message.author}: {message.content}")
     
     if message.author == bot.user:
         return
@@ -60,90 +68,36 @@ async def on_message(message):
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.mention}!!")
 
+# @bot.command(name = "register", description = "Start tracking wins!", guild = GUILD_ID)
+# async def register(ctx):
+
+#     id = str(ctx.author.id)
+#     registration_status = await register_player(id)
+
+#     if registration_status:
+#         await ctx.send(f"{ctx.author.mention} has been sucessfully registered! Go play some games!")
+#     else:
+#         await ctx.send(f"{ctx.author.mention} has already registered. Continue playing!")
+
 
 @bot.command(name = "help", description = "list out all commands", guild = GUILD_ID)
 async def help(ctx):
     # await ctx.send(embed=createHelpEmbed)
     embed = discord.Embed(title = "Help", description= "Type-Wars uses the '/' prefix: ")
     
-    embed.add_field(name = "/tw", value = "Activate single-player 'Type Wars' game")
-    embed.add_field(name = "/tw @user", value = "Activate multiplayer 'Type Wars' game")
-
-
+    embed.add_field(name = "/typewar", value = "Activate single-player 'Type Wars' game")
+    embed.add_field(name = "/typewars @user", value = "Activate multiplayer 'Type Wars' game")
+    
+    embed.add_field(name = "/hangman", value = "Play a singleplayer game of hangman!")
+    embed.add_field(name = "/gan", value = "Play guess the number!")
+    embed.add_field(name = "/rps @user", value = "Challenge another user to 'Rock, Paper, Scissors'!")
 
     await ctx.send(embed = embed)
 
-@bot.command(name="typewars", description="Challenge someone to a typing duel!")
-async def typewars(ctx):
-    from random_word import RandomWords
-    import time
+# Singleplayer TypeWars
 
-    await ctx.send("Do you want to play against someone? (yes/no)")
-
-    def check_reply(m):
-        return m.author == ctx.author and m.channel == ctx.channel
-
-    try:
-        reply = await bot.wait_for("message", check=check_reply, timeout=15.0)
-    except:
-        await ctx.send("You didn’t respond in time. Game cancelled.")
-        return
-
-    if reply.content.lower() in ["yes", "y"]:
-        await ctx.send("Tag the user you want to challenge (e.g., @username):")
-
-        try:
-            challenge_msg = await bot.wait_for("message", check=check_reply, timeout=15.0)
-        except:
-            await ctx.send("You didn’t tag anyone in time. Game cancelled.")
-            return
-
-        # Extract mentioned user
-        if not challenge_msg.mentions:
-            await ctx.send("You didn’t tag a valid user. Game cancelled.")
-            return
-
-        opponent = challenge_msg.mentions[0]
-        await ctx.send(f"{opponent.mention}, you’ve been challenged to a typing duel by {ctx.author.mention}! Type `accept` to play or `decline` to skip.")
-
-        def check_opponent(m):
-            return m.author == opponent and m.channel == ctx.channel and m.content.lower() in ["accept", "decline"]
-
-        try:
-            response = await bot.wait_for("message", check=check_opponent, timeout=15.0)
-        except:
-            await ctx.send(f"{opponent.mention} didn’t respond. Game cancelled.")
-            return
-
-        if response.content.lower() == "decline":
-            await ctx.send("Challenge declined. Maybe next time!")
-            return
-
-        await ctx.send("Challenge accepted! Get ready...")
-
-        r = RandomWords()
-        word = r.get_random_word()
-
-        await ctx.send(f"Type this word as fast as you can: **{word}**")
-
-        start_time = time.time()
-
-        def check_winner(m):
-            return m.channel == ctx.channel and m.content.strip().lower() == word.lower() and m.author in [ctx.author, opponent]
-
-        try:
-            winner_msg = await bot.wait_for("message", check=check_winner, timeout=10.0)
-        except:
-            await ctx.send("No one typed the word in time! No winner this round.")
-            return
-
-        end_time = time.time()
-        speed = round(end_time - start_time, 2)
-
-
-        await ctx.send(f"🏆 {winner_msg.author.mention} wins! They typed it in **{speed} seconds!**")
-
-    else:
+@bot.command(name="tw", description="Challenge someone to a typing duel!")
+async def typewar(ctx):
         # Single-player version
         r = RandomWords()
         word = r.get_random_word()
@@ -163,39 +117,145 @@ async def typewars(ctx):
         end_time = time.time()
 
         if msg.content.strip().lower() == word.lower():
+            
+            id = str(ctx.author.id)
             speed = round(end_time - start_time, 2)
 
+
             await ctx.send(f"Nice job {ctx.author.mention}! You typed it correctly in **{speed} seconds!**")
-            await add_win(ctx)
+            await single_win(id, speed, word)
 
         else:
             await ctx.send(f"The correct word was **{word}**.")
+
+# Multiplayer TypeWars
+
+@bot.command(name = "typewars")
+async def typewars(ctx, member: discord.Member):
+    from random_word import RandomWords
+    import time
+
+    # await ctx.send("Do you want to play against someone? (yes/no)")
+
+    # def check_reply(m):
+    #     return m.author == ctx.author and m.channel == ctx.channel
+
+    # try:
+    #     reply = await bot.wait_for("message", check=check_reply, timeout=15.0)
+    # except:
+    #     await ctx.send("You didn’t respond in time. Game cancelled.")
+    #     return
+
+    # if reply.content.lower() in ["yes", "y"]:
+
+    #await ctx.send("Tag the user you want to challenge (e.g., @username):")
+
+    # try:
+    #     challenge_msg = await bot.wait_for("message", check=check_reply, timeout=15.0)
+    # except:
+    #     await ctx.send("You didn’t tag anyone in time. Game cancelled.")
+    #     return
+
+    # Extract mentioned user
+    if not member.mention:
+        await ctx.send("You didn’t tag a valid user. Game cancelled.")
+        return
+
+    #opponent = challenge_msg.mentions[0]
+    await ctx.send(f"{member.mention}, you’ve been challenged to a typing duel by {ctx.author.mention}! Type `accept` to play or `decline` to skip.")
+
+    def check_opponent(m):
+        return m.author == member and m.channel == ctx.channel and m.content.lower() in ["accept", "decline"]
+
+    try:
+        response = await bot.wait_for("message", check=check_opponent, timeout=15.0)
+    except:
+        await ctx.send(f"{member.mention} didn’t respond. Game cancelled.")
+        return
+
+    if response.content.lower() == "decline":
+        await ctx.send("Challenge declined. Maybe next time!")
+        return
+
+    await ctx.send("Challenge accepted! Get ready...")
+
+    r = RandomWords()
+    word = r.get_random_word()
+
+    await ctx.send(f"Type this word as fast as you can: **{word}**")
+
+    start_time = time.time()
+
+    def check_winner(m):
+        return m.channel == ctx.channel and m.content.strip().lower() == word.lower() and m.author in [ctx.author, member]
+
+    try:
+        winner_msg = await bot.wait_for("message", check=check_winner, timeout=10.0)
+    except:
+        await ctx.send("No one typed the word in time! No winner this round.")
+        return
+
+    end_time = time.time()
+    speed = round(end_time - start_time, 2)
+
+    await ctx.send(f"🏆 {winner_msg.author.mention} wins! They typed it in **{speed} seconds!**")
+    await multi_win(winner_msg.author)
+
+
 
 @bot.command(name = "wins", description = "Check how many wins you have")
 async def wins(ctx):
 
     id = str(ctx.author.id)
 
-    if id not in users:
-        await ctx.send("❓ You haven't played yet! Play some games to see your score! ")
+    if id != users["User"]:
+        await ctx.send("❓ You haven't played any games yet! Play some to see your score! ")
     else:
-        await ctx.send("🎖️  You have {} win(s) in TypeWars!".format(users[id]))
+        await ctx.send("⏲️  Your fastest time was **{0}** with the word **{1}** in singleplayer Typewars!".format(users["time"],users["word"]))
+        await ctx.send("⌨️  You have **{}** win(s) in multiplayer TypeWars!".format(users["wins"]))
 
 
-async def add_win(ctx):
+def single_win(id, time, word):
+
+    if id not in users:
+        users["User"] = id
+
+    if users["time"] > time:
+
+        users["time"] = time
+        users["word"] = word
+
+    save_data()
+
+    print(f"Finished!")
+    
+
+
+def multi_win(ctx):
 
     id = str(ctx.author.id)
 
     if id not in users:
-        users[id] = 0
+        users["User"] = id
+        
+    users[id]["wins"] += 1
 
-    users[id] += 1
     save_data()
 
-async def save_data():
+# async def register_player(id):
+
+#     if id not in users["User"]:
+#         users["User"] = id
+#         return True
+#     else:
+#         print("User is already registered.")
+#         return False
+
+def save_data():
     global users
-    with open("leaderboard.json", 'w') as f:
-        json.dump(users, f, indent=2)
+    with open("track_wins.json", "w") as f:
+        json.dump(users, f)
+
 
 @bot.tree.command(name="hangman", description="Play a game of Hangman!")
 async def hangman(interaction: discord.Interaction):
